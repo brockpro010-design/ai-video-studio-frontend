@@ -15,14 +15,15 @@ header{display:flex;align-items:center;justify-content:space-between;padding:6px
 .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.14em;font-size:15px}
 .logo i{width:34px;height:34px;border-radius:10px;background:var(--g);display:grid;place-items:center;box-shadow:0 0 22px #8b5cf666}
 .logo svg{width:18px;height:18px}
-.tag{font-size:11px;color:var(--mu);border:1px solid var(--line);padding:4px 10px;border-radius:99px;display:flex;gap:6px;align-items:center;cursor:pointer}
+.tag{font-size:11px;color:var(--mu);border:1px solid var(--line);padding:4px 10px;border-radius:99px;display:flex;gap:6px;align-items:center}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .card{background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;animation:up .5s ease both}
 @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);margin:0 0 10px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
 h2 small{text-transform:none;letter-spacing:0;font-weight:500}
-textarea{width:100%;min-height:150px;resize:vertical;background:#0b0916;color:var(--tx);border:1px solid var(--line);border-radius:14px;padding:14px;font:inherit;font-size:16px;outline:0;transition:.25s}
+textarea{width:100%;min-height:130px;resize:vertical;background:#0b0916;color:var(--tx);border:1px solid var(--line);border-radius:14px;padding:14px;font:inherit;font-size:16px;outline:0;transition:.25s}
 textarea:focus{border-color:var(--p);box-shadow:0 0 0 3px #8b5cf630}
+input[type="text"]{width:100%;background:#0b0916;color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;font-size:14px;outline:0;margin-top:6px}
 .row{display:grid;gap:8px}.c3{grid-template-columns:repeat(3,1fr)}
 .chip{background:#0b0916;border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:12px 6px;font:inherit;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:.25s;min-height:62px}
 .chip small{font-weight:500;color:var(--mu);font-size:11px}
@@ -74,8 +75,14 @@ footer{text-align:center;color:var(--mu);font-size:11.5px;margin-top:8px}
 <div class="wrap">
 <header>
  <div class="logo"><i><svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></i>AI VIDEO STUDIO</div>
- <div class="tag on" id="status-tag"><span class="dot"></span><span id="status-txt">Pronto para Gerar</span></div>
+ <div class="tag"><span class="dot"></span><span>Modo Direto Ativo</span></div>
 </header>
+
+<section class="card">
+ <h2>Token Hugging Face (HF)</h2>
+ <small style="color:var(--mu);font-size:12px;display:block;margin-bottom:6px">Cole aqui o seu token que começa com <code>hf_...</code> para gerar direto no telemóvel:</small>
+ <input type="text" id="hf-key" placeholder="hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+</section>
 
 <section class="card">
  <h2>Prompt <small id="cnt">0 / 1000</small></h2>
@@ -112,28 +119,10 @@ footer{text-align:center;color:var(--mu);font-size:11.5px;margin-top:8px}
  <h2>Histórico <button class="lnk" id="clr">Limpar</button></h2>
  <div class="hist" id="hist"></div>
 </section>
-<footer>v1.0 · Conectado ao Render</footer>
+<footer>v2.0 · Conexão Direta HF</footer>
 </div>
 
 <script>
-var CONFIG={
-  backendUrl: "https://ai-video-studio-backend.onrender.com",
-  submitPath: "/api/videos"
-};
-
-var provider={
- submit:function(job){
-  return fetch(CONFIG.backendUrl+CONFIG.submitPath,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(job)
-  }).then(function(r){
-    if(!r.ok) return r.json().then(function(err){ throw new Error(err.error || "Erro na geração"); });
-    return r.json();
-  });
- }
-};
-
 var OPT={
  format:[{v:"9:16",t:"Vertical",s:"9:16",w:18,h:32,r:"9/16",wd:"170px"},{v:"16:9",t:"Horizontal",s:"16:9",w:32,h:18,r:"16/9",wd:"100%"},{v:"1:1",t:"Quadrado",s:"1:1",w:24,h:24,r:"1/1",wd:"260px"}],
  dur:[{v:10,t:"10 s"},{v:15,t:"15 s"},{v:30,t:"30 s"}],
@@ -168,7 +157,7 @@ function sync(){
  var d=DIMS[S.format][S.res];$("fmeta").textContent=S.format+" · "+d[0]+"×"+d[1]+" · "+S.dur+"s";
 }
 function emptyFrame(){
- $("frame").innerHTML='<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4-2.5z"/></svg><div>Nenhum vídeo gerado ainda</div><small>Insira um prompt e clique em Gerar Vídeo.</small></div>';
+ $("frame").innerHTML='<div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4-2.5z"/></svg><div>Nenhum vídeo gerado ainda</div><small>Insira o seu token, um prompt e clique em Gerar.</small></div>';
 }
 function setProgress(p,t){$("bar").style.width=p+"%";$("ppct").textContent=p+"%";$("pstate").textContent=t}
 function setNote(t){var n=$("note");n.textContent=t;n.classList.toggle("on",!!t)}
@@ -198,35 +187,86 @@ function renderHist(){
   h.appendChild(b);
  });
 }
-function save(){try{localStorage.setItem("aivs_hist",JSON.stringify(hist))}catch(e){}}
+function save(){try{localStorage.setItem("aivs_hist_v2",JSON.stringify(hist));localStorage.setItem("aivs_token",$("hf-key").value)}catch(e){}}
 function cnt(){$("cnt").textContent=$("prompt").value.length+" / 1000"}
 
 $("prompt").addEventListener("input",cnt);
+$("hf-key").addEventListener("input",save);
 $("tp").onclick=function(){var p=$("json");p.textContent=JSON.stringify(job(),null,2);p.classList.toggle("on")};
 $("clr").onclick=function(){hist=[];save();renderHist()};
-$("gen").onclick=function(){
+
+$("gen").onclick=async function(){
+ var token = $("hf-key").value.trim();
+ if(!token.startsWith("hf_")){
+   setNote("Insira um Token válido da Hugging Face que comece com 'hf_' na caixa acima.");
+   $("hf-key").focus();
+   return;
+ }
  var j=job();
  if(j.prompt.length<10){setNote("Escreva um prompt com pelo menos 10 caracteres.");$("prompt").focus();return}
- setNote("");setProgress(20,"Enviando para a IA (pode levar de 30s a 2min)...");
+ 
+ setNote("");
+ setProgress(15,"A conectar com a Hugging Face...");
  $("gen").disabled = true;
 
- provider.submit(j).then(function(r){
-  setProgress(100,"Vídeo gerado com sucesso!");
-  setVideo(r.videoUrl);
-  j.videoUrl = r.videoUrl;
-  j.at=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-  hist.unshift(j);hist=hist.slice(0,20);save();renderHist();
-  $("gen").disabled = false;
- }).catch(function(e){
-  setProgress(0,"Falha na geração");
-  setNote("Erro: " + e.message);
-  j.at=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-  hist.unshift(j);hist=hist.slice(0,20);save();renderHist();
-  $("gen").disabled = false;
- });
+ try {
+   // Chamada direta à API da Hugging Face
+   setProgress(40, "A IA está gerando o vídeo (pode demorar até 1 minuto)...");
+   
+   let response = await fetch("https://api-inference.huggingface.co/models/damo-vilab/text-to-video-ms-1.7b", {
+     method: "POST",
+     headers: {
+       "Authorization": "Bearer " + token,
+       "Content-Type": "application/json"
+     },
+     body: JSON.stringify({ inputs: j.prompt })
+   });
+
+   // Se o modelo estiver a aquecer (503), tenta dar um aviso amigável
+   if(response.status === 503){
+     setProgress(60, "O modelo está a aquecer na Hugging Face. Tentando novamente em 15s...");
+     await new Promise(r => setTimeout(r, 15000));
+     response = await fetch("https://api-inference.huggingface.co/models/damo-vilab/text-to-video-ms-1.7b", {
+       method: "POST",
+       headers: {
+         "Authorization": "Bearer "+token,
+         "Content-Type": "application/json"
+       },
+       body: JSON.stringify({ inputs: j.prompt })
+     });
+   }
+
+   if(!response.ok){
+     let errData = await response.text();
+     throw new Error("Erro da API ("+response.status+"): "+errData.slice(0, 100));
+   }
+
+   setProgress(85, "A processar ficheiro de vídeo...");
+   let blob = await response.blob();
+   let videoUrl = URL.createObjectURL(blob);
+
+   setProgress(100,"Vídeo gerado com sucesso!");
+   setVideo(videoUrl);
+   j.videoUrl = videoUrl;
+   j.at=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+   hist.unshift(j);hist=hist.slice(0,20);save();renderHist();
+   $("gen").disabled = false;
+
+ } catch(e) {
+   setProgress(0,"Falha na geração");
+   setNote("Erro: " + e.message);
+   j.at=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+   hist.unshift(j);hist=hist.slice(0,20);save();renderHist();
+   $("gen").disabled = false;
+ }
 };
 
-try{hist=JSON.parse(localStorage.getItem("aivs_hist")||"[]")||[]}catch(e){hist=[]}
+try{
+  hist=JSON.parse(localStorage.getItem("aivs_hist_v2")||"[]")||[];
+  let savedToken = localStorage.getItem("aivs_token");
+  if(savedToken) $("hf-key").value = savedToken;
+}catch(e){hist=[]}
+
 emptyFrame();sync();renderHist();setProgress(0,"Aguardando");
 </script>
 </body>
