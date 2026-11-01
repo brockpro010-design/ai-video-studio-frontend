@@ -16,8 +16,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:6px
 .logo i{width:34px;height:34px;border-radius:10px;background:var(--g);display:grid;place-items:center;box-shadow:0 0 22px #8b5cf666}
 .logo svg{width:18px;height:18px}
 .tag{font-size:11px;color:var(--mu);border:1px solid var(--line);padding:4px 10px;border-radius:99px;display:flex;gap:6px;align-items:center;cursor:pointer}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--wa);box-shadow:0 0 8px var(--wa)}
-.tag.on .dot{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
 .card{background:linear-gradient(180deg,var(--s2),var(--s1));border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;animation:up .5s ease both}
 @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);margin:0 0 10px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
@@ -75,7 +74,7 @@ footer{text-align:center;color:var(--mu);font-size:11.5px;margin-top:8px}
 <div class="wrap">
 <header>
  <div class="logo"><i><svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></i>AI VIDEO STUDIO</div>
- <div class="tag" id="status-tag" onclick="checkBackend()" title="Toque para testar conexão"><span class="dot"></span><span id="status-txt">Conectando...</span></div>
+ <div class="tag on" id="status-tag"><span class="dot"></span><span id="status-txt">Pronto para Gerar</span></div>
 </header>
 
 <section class="card">
@@ -113,7 +112,7 @@ footer{text-align:center;color:var(--mu);font-size:11.5px;margin-top:8px}
  <h2>Histórico <button class="lnk" id="clr">Limpar</button></h2>
  <div class="hist" id="hist"></div>
 </section>
-<footer>v1.0 · Conectado ao Backend no Render</footer>
+<footer>v1.0 · Conectado ao Render</footer>
 </div>
 
 <script>
@@ -124,7 +123,6 @@ var CONFIG={
 
 var provider={
  submit:function(job){
-  if(!CONFIG.backendUrl) return Promise.reject(new Error("NO_BACKEND"));
   return fetch(CONFIG.backendUrl+CONFIG.submitPath,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -147,30 +145,6 @@ var MODELS=[
 var DIMS={"9:16":{"480p":[480,854],"720p":[720,1280],"1080p":[1080,1920]},"16:9":{"480p":[854,480],"720p":[1280,720],"1080p":[1920,1080]},"1:1":{"480p":[480,480],"720p":[720,720],"1080p":[1080,1080]}};
 var S={format:"9:16",dur:10,res:"720p",model:"text-to-video"};
 var hist=[];var $=function(i){return document.getElementById(i)};
-
-function checkBackend(){
- $("status-txt").textContent="Conectando...";
- $("status-tag").classList.remove("on");
- fetch(CONFIG.backendUrl+"/api/health")
-  .then(function(r){ return r.json(); })
-  .then(function(d){
-     var tag=$("status-tag");
-     tag.classList.add("on");
-     $("status-txt").textContent="Backend Conectado";
-  })
-  .catch(function(){
-     fetch(CONFIG.backendUrl+"/")
-      .then(function(r){ return r.json(); })
-      .then(function(d){
-         var tag=$("status-tag");
-         tag.classList.add("on");
-         $("status-txt").textContent="Backend Conectado";
-      })
-      .catch(function(){
-         $("status-txt").textContent="Backend desconectado";
-      });
-  });
-}
 
 function build(id,list,key,fn){
  var el=$(id);el.innerHTML="";
@@ -205,7 +179,7 @@ function setVideo(url,name){
 }
 
 function job(){var d=DIMS[S.format][S.res];return{prompt:$("prompt").value.trim(),model:S.model,aspectRatio:S.format,durationSeconds:S.dur,resolution:S.res,width:d[0],height:d[1]}}
-function esc(s){return s.replace(/[&<>]/g,function(c){return{"&":"&","<":"<",">":">"}[c]})}
+function esc(s){return s.replace(/[&<>]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
 
 function renderHist(){
  var h=$("hist");
@@ -253,7 +227,7 @@ $("gen").onclick=function(){
 };
 
 try{hist=JSON.parse(localStorage.getItem("aivs_hist")||"[]")||[]}catch(e){hist=[]}
-emptyFrame();sync();renderHist();setProgress(0,"Aguardando");checkBackend();
+emptyFrame();sync();renderHist();setProgress(0,"Aguardando");
 </script>
 </body>
 </html>
